@@ -1,6 +1,6 @@
 import React from 'react';
-import { MENU_ITEMS, COLOR_MAP } from '../constants.ts';
-import { ItemCategory } from '../types.ts';
+import { MENU_ITEMS, COLOR_MAP } from '../constants';
+import { ItemCategory } from '../types';
 
 interface InputPanelProps {
   items: Record<string, number>;
@@ -8,6 +8,7 @@ interface InputPanelProps {
 }
 
 const InputPanel: React.FC<InputPanelProps> = ({ items, onUpdate }) => {
+  // Group by price/category for layout
   const categories: ItemCategory[] = ['YELLOW', 'RED', 'ORANGE', 'BLUE', 'PURPLE', 'WHITE', 'OPERATIONAL'];
 
   return (

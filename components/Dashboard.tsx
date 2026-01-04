@@ -1,8 +1,8 @@
 import React from 'react';
-import { AppState, DailyRecord } from '../types.ts';
-import { calculateDailyStats, getStrictDailyTarget, formatDate } from '../utils.ts';
-import InputPanel from './InputPanel.tsx';
-import WarningSystem from './WarningSystem.tsx';
+import { AppState, DailyRecord } from '../types';
+import { calculateDailyStats, getStrictDailyTarget, formatDate } from '../utils';
+import InputPanel from './InputPanel';
+import WarningSystem from './WarningSystem';
 
 interface DashboardProps {
   state: AppState;
@@ -13,17 +13,21 @@ interface DashboardProps {
 const Dashboard: React.FC<DashboardProps> = ({ state, todayStr, updateRecord }) => {
   const currentRecord = state.records[todayStr] || {
     date: todayStr,
-    isWorkDay: true,
+    isWorkDay: true, // Default assumed
     items: {},
-    manualDeductions: { meal: true },
+    manualDeductions: { meal: true }, // Legacy flag, basically ignores "false" now if workday is true
   };
 
   const dailyTarget = getStrictDailyTarget(state, todayStr);
   const stats = calculateDailyStats(currentRecord, state.mealCost);
   
+  // Surplus dihitung dari NET (Omset Jasa). Uang makan TIDAK MASUK perhitungan target kerja.
   const surplus = stats.net - dailyTarget;
+  
+  // Gaji Cair = (Omset Jasa - Potongan Lain) + Uang Makan
   const takeHome = (stats.income - stats.deductions) + stats.mealAllowance;
   
+  // Check strict consecutive loss logic
   const [y, m, d] = todayStr.split('-').map(Number);
   const currentDt = new Date(y, m - 1, d);
   const yesterdayDate = new Date(currentDt);
@@ -50,6 +54,7 @@ const Dashboard: React.FC<DashboardProps> = ({ state, todayStr, updateRecord }) 
     updateRecord({
       ...currentRecord,
       isWorkDay: !currentRecord.isWorkDay,
+      // Reset meal logic automatically handled by isWorkDay in utils
     });
   };
 
@@ -71,6 +76,7 @@ const Dashboard: React.FC<DashboardProps> = ({ state, todayStr, updateRecord }) 
 
   return (
     <div className="flex flex-col h-full bg-industrial-900 text-gray-100">
+      {/* HEADER: REAL TIME STATUS */}
       <div className={`p-6 border-b-4 shadow-xl ${surplus >= 0 ? 'border-industrial-green bg-green-900/20' : 'border-industrial-alert bg-red-900/20'} sticky top-0 z-50 backdrop-blur-md transition-colors duration-500`}>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 items-end mb-4">
           <div className="col-span-1">
@@ -83,7 +89,10 @@ const Dashboard: React.FC<DashboardProps> = ({ state, todayStr, updateRecord }) 
                {formatCurrency(stats.net)}
              </div>
           </div>
+          
+          {/* Divider on Mobile hidden, shown on Desktop */}
           <div className="hidden md:block w-px bg-gray-700 h-10"></div>
+
           <div className="col-span-2 md:col-span-1 flex flex-col justify-end">
             <div className="flex justify-between items-center bg-black/40 p-2 rounded">
               <span className={`font-bold text-sm uppercase ${surplus >= 0 ? 'text-green-400' : 'text-red-500'}`}>
@@ -100,6 +109,8 @@ const Dashboard: React.FC<DashboardProps> = ({ state, todayStr, updateRecord }) 
             )}
           </div>
         </div>
+
+        {/* FINANCIAL SPLIT */}
         <div className="grid grid-cols-2 gap-4 bg-black/60 p-3 rounded border border-white/10">
            <div className="flex flex-col md:flex-row md:items-center justify-between border-r border-gray-700 pr-4">
              <div className="text-xs text-gray-400 uppercase">Tunjangan Makan (+)</div>
@@ -114,6 +125,7 @@ const Dashboard: React.FC<DashboardProps> = ({ state, todayStr, updateRecord }) 
         </div>
       </div>
 
+      {/* WARNING SYSTEM */}
       <WarningSystem 
         totalNet={stats.net} 
         totalPairs={stats.totalPairs} 
@@ -123,6 +135,7 @@ const Dashboard: React.FC<DashboardProps> = ({ state, todayStr, updateRecord }) 
         target={dailyTarget}
       />
 
+      {/* CONTROL PANEL */}
       <div className="p-4 md:p-6 space-y-6">
         <div className="flex items-center justify-between bg-industrial-800 p-4 rounded border border-industrial-700 max-w-xl mx-auto md:mx-0">
           <span className="font-bold uppercase text-sm md:text-base">Masuk Kerja Hari Ini?</span>
@@ -145,6 +158,8 @@ const Dashboard: React.FC<DashboardProps> = ({ state, todayStr, updateRecord }) 
                  +{formatCurrency(state.mealCost)}
                </div>
             </div>
+            
+            {/* UTANG TARGET PANEL / ADVICE */}
             {deficitVal > 0 && (
                 <div className="bg-slate-800 p-4 border-l-4 border-slate-500 max-w-3xl">
                     <h4 className="text-xs uppercase text-slate-400 mb-2">Instruksi Kejar Target:</h4>
@@ -163,6 +178,7 @@ const Dashboard: React.FC<DashboardProps> = ({ state, todayStr, updateRecord }) 
                     </div>
                 </div>
             )}
+
             <div className="mt-8">
               <h3 className="text-sm font-bold uppercase text-gray-500 mb-4 px-2 border-b border-gray-800 pb-2">Input Menu Pekerjaan</h3>
               <InputPanel items={currentRecord.items} onUpdate={handleUpdateItem} />
