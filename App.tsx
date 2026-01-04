@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { AppState, DailyRecord } from './types.ts';
-import { DEFAULT_TARGET, DEFAULT_MEAL_COST } from './constants.ts';
-import { formatDate } from './utils.ts';
-import Dashboard from './components/Dashboard.tsx';
-import CalendarView from './components/CalendarView.tsx';
-import Evaluator from './components/Evaluator.tsx';
+import { AppState, DailyRecord } from './types';
+import { DEFAULT_TARGET, DEFAULT_MEAL_COST } from './constants';
+import { formatDate } from './utils';
+import Dashboard from './components/Dashboard';
+import CalendarView from './components/CalendarView';
+import Evaluator from './components/Evaluator';
 
 const CURRENT_REAL_YEAR = new Date().getFullYear();
 

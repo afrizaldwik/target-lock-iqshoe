@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App.tsx'; // Tambahkan .tsx agar browser tidak bingung
+import App from './App';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
