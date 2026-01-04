@@ -1,4 +1,4 @@
-import { MenuItem } from './types';
+import { MenuItem } from './types.ts';
 
 export const MENU_ITEMS: MenuItem[] = [
   // 🟨 Rp10.000
@@ -40,7 +40,7 @@ export const COLOR_MAP = {
   YELLOW: 'bg-yellow-500 text-black border-yellow-600',
   ORANGE: 'bg-orange-500 text-black border-orange-600',
   RED: 'bg-red-500 text-black border-red-600',
-  WHITE: 'bg-cyan-600 text-white border-cyan-800', // Changed to Industrial Cyan
+  WHITE: 'bg-cyan-600 text-white border-cyan-800', 
   BLUE: 'bg-blue-600 text-white border-blue-800',
   PURPLE: 'bg-purple-600 text-white border-purple-800',
   OPERATIONAL: 'bg-pink-600 text-white border-pink-800',

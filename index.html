@@ -5,18 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TARGET_LOCK // MANDOR DIGITAL</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script>
       tailwind.config = {
         theme: {
           extend: {
             colors: {
               industrial: {
-                900: '#0f172a', // Slate 900
-                800: '#1e293b', // Slate 800
-                700: '#334155', // Slate 700
-                red: '#ef4444',   // Red 500
-                green: '#22c55e', // Green 500
-                alert: '#dc2626', // Red 600
+                900: '#0f172a',
+                800: '#1e293b',
+                700: '#334155',
+                red: '#ef4444',
+                green: '#22c55e',
+                alert: '#dc2626',
               }
             },
             fontFamily: {
@@ -30,28 +31,32 @@
       body {
         background-color: #000;
         color: #e2e8f0;
+        margin: 0;
+        overflow-x: hidden;
       }
-      /* Remove scrollbars for industrial feel */
       ::-webkit-scrollbar {
         width: 0px;
         background: transparent;
       }
     </style>
-  <script type="importmap">
+    <script type="importmap">
 {
   "imports": {
-    "react/": "https://esm.sh/react@^19.2.3/",
-    "react": "https://esm.sh/react@^19.2.3",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react": "https://esm.sh/react@18.2.0",
+    "react-dom": "https://esm.sh/react-dom@18.2.0",
+    "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
     "jspdf": "https://esm.sh/jspdf@2.5.1",
-    "jspdf-autotable": "https://esm.sh/jspdf-autotable@3.8.2"
+    "jspdf-autotable": "https://esm.sh/jspdf-autotable@3.8.2",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/"
   }
 }
 </script>
-<link rel="stylesheet" href="/index.css">
+  <link rel="stylesheet" href="/index.css">
 </head>
   <body>
     <div id="root"></div>
+    <script type="text/babel" data-type="module" src="index.tsx"></script>
   <script type="module" src="/index.tsx"></script>
 </body>
 </html>
