@@ -27,15 +27,19 @@ const Evaluator: React.FC<EvaluatorProps> = ({ state, updateTarget, onImportData
   
   let totalDeductions = 0;
   let totalMealAllowance = 0;
+  let totalKasbon = 0;
+
   Object.values(state.records).forEach((record: DailyRecord) => {
       const stats = calculateDailyStats(record, state.mealCost);
       totalDeductions += stats.deductions;
       totalMealAllowance += stats.mealAllowance;
+      totalKasbon += stats.kasbon;
   });
 
   const percentAchieved = (projection.totalNetIncome / state.monthlyTarget) * 100;
   const projectedPercent = (projection.projectedTotal / state.monthlyTarget) * 100;
-  const takeHomePay = (projection.totalNetIncome - totalDeductions) + totalMealAllowance;
+  // TAKE HOME = INCOME - DEDUCTIONS - KASBON + MEAL
+  const takeHomePay = (projection.totalNetIncome - totalDeductions - totalKasbon) + totalMealAllowance;
 
   // --- DATA MANAGEMENT ---
   
@@ -97,6 +101,7 @@ const Evaluator: React.FC<EvaluatorProps> = ({ state, updateTarget, onImportData
     let monthIncome = 0;
     let monthMeal = 0;
     let monthDeductions = 0;
+    let monthKasbon = 0;
     let monthPairs = 0;
     
     const tableRows = [];
@@ -106,16 +111,26 @@ const Evaluator: React.FC<EvaluatorProps> = ({ state, updateTarget, onImportData
       const record = state.records[dateStr];
       const dayName = new Date(dateStr).toLocaleDateString('id-ID', { weekday: 'short' });
       
-      let rowData = [`${d}`, dayName, '-', '0', '0', '0'];
+      // COLUMNS: TGL, HARI, STATUS, QTY, OMSET, MAKAN, KASBON
+      let rowData = [`${d}`, dayName, '-', '0', '0', '0', '0'];
 
       if (record) {
         const stats = calculateDailyStats(record, state.mealCost);
         monthIncome += stats.income;
         monthMeal += stats.mealAllowance;
         monthDeductions += stats.deductions;
+        monthKasbon += stats.kasbon;
         monthPairs += stats.totalPairs;
         const status = record.isWorkDay ? 'KERJA' : 'LIBUR';
-        rowData = [`${d}`, dayName, status, stats.totalPairs.toString(), stats.income.toLocaleString('id-ID'), stats.mealAllowance.toLocaleString('id-ID')];
+        rowData = [
+          `${d}`, 
+          dayName, 
+          status, 
+          stats.totalPairs.toString(), 
+          stats.income.toLocaleString('id-ID'), 
+          stats.mealAllowance.toLocaleString('id-ID'),
+          stats.kasbon > 0 ? `(${stats.kasbon.toLocaleString('id-ID')})` : '-'
+        ];
       } else {
         const isSun = new Date(dateStr).getDay() === 0;
         rowData[2] = isSun ? 'MINGGU' : '-';
@@ -123,7 +138,7 @@ const Evaluator: React.FC<EvaluatorProps> = ({ state, updateTarget, onImportData
       tableRows.push(rowData);
     }
 
-    const monthTakeHome = (monthIncome - monthDeductions) + monthMeal;
+    const monthTakeHome = (monthIncome - monthDeductions - monthKasbon) + monthMeal;
 
     doc.setDrawColor(0);
     doc.setFillColor(240, 240, 240);
@@ -132,26 +147,37 @@ const Evaluator: React.FC<EvaluatorProps> = ({ state, updateTarget, onImportData
     doc.setFontSize(9);
     doc.text("TARGET BULANAN", 20, 48);
     doc.text(`Rp ${state.monthlyTarget.toLocaleString('id-ID')}`, 20, 54);
-    doc.text("OMSET JASA (GROSS)", 70, 48);
-    doc.text(`Rp ${monthIncome.toLocaleString('id-ID')}`, 70, 54);
-    doc.text("TOTAL GAJI (CAIR)", 130, 48);
+    
+    doc.text("OMSET JASA", 60, 48);
+    doc.text(`Rp ${monthIncome.toLocaleString('id-ID')}`, 60, 54);
+    
+    doc.text("TOTAL KASBON", 100, 48);
+    doc.setTextColor(200, 0, 0);
+    doc.text(`- Rp ${monthKasbon.toLocaleString('id-ID')}`, 100, 54);
+    doc.setTextColor(0, 0, 0);
+
+    doc.text("TOTAL GAJI (CAIR)", 145, 48);
     doc.setFontSize(12);
     doc.setFont("helvetica", "bold");
-    doc.text(`Rp ${monthTakeHome.toLocaleString('id-ID')}`, 130, 56);
+    doc.text(`Rp ${monthTakeHome.toLocaleString('id-ID')}`, 145, 56);
 
     autoTable(doc, {
       startY: 70,
-      head: [['TGL', 'HARI', 'STATUS', 'QTY (PSG)', 'OMSET (RP)', 'MAKAN (RP)']],
+      head: [['TGL', 'HARI', 'STATUS', 'QTY', 'OMSET (RP)', 'MAKAN', 'KASBON']],
       body: tableRows,
       theme: 'grid',
       headStyles: { fillColor: [40, 40, 40], textColor: [255, 255, 255] },
       styles: { fontSize: 8, cellPadding: 2 },
       columnStyles: {
-        0: { cellWidth: 15 }, 1: { cellWidth: 20 }, 2: { cellWidth: 25 },
-        3: { cellWidth: 25, halign: 'center' }, 4: { cellWidth: 35, halign: 'right' },
-        5: { cellWidth: 35, halign: 'right' }
+        0: { cellWidth: 10 }, 
+        1: { cellWidth: 15 }, 
+        2: { cellWidth: 20 },
+        3: { cellWidth: 15, halign: 'center' }, 
+        4: { cellWidth: 35, halign: 'right' },
+        5: { cellWidth: 35, halign: 'right' },
+        6: { cellWidth: 35, halign: 'right', textColor: [200, 0, 0] }
       },
-      foot: [['TOTAL', '', '', monthPairs.toString(), `Rp ${monthIncome.toLocaleString('id-ID')}`, `Rp ${monthMeal.toLocaleString('id-ID')}`]],
+      foot: [['TOTAL', '', '', monthPairs.toString(), `Rp ${monthIncome.toLocaleString('id-ID')}`, `Rp ${monthMeal.toLocaleString('id-ID')}`, `Rp ${monthKasbon.toLocaleString('id-ID')}`]],
       footStyles: { fillColor: [200, 200, 200], textColor: [0, 0, 0], fontStyle: 'bold' }
     });
 
@@ -269,16 +295,15 @@ const Evaluator: React.FC<EvaluatorProps> = ({ state, updateTarget, onImportData
         <div className="bg-slate-800 p-6 rounded border border-slate-600 flex flex-col justify-center">
            <div className="text-sm font-bold text-blue-300 uppercase mb-2">Estimasi Total Transfer Gaji</div>
            <div className="text-4xl font-mono font-bold text-white">Rp{takeHomePay.toLocaleString('id-ID')}</div>
-           <div className="text-xs text-slate-400 mt-2 italic">(Omset Jasa + Uang Makan - Kasbon Lain)</div>
+           <div className="text-xs text-slate-400 mt-2 italic">(Omset Jasa + Uang Makan - Kasbon)</div>
         </div>
 
         <div className="bg-industrial-800 p-6 rounded border-l-8 border-red-500 flex flex-col justify-center">
-           <div className="text-sm font-bold text-gray-400 uppercase mb-2">Kekurangan Target Jasa</div>
-           <div className="text-3xl font-mono text-white">
-              {projection.projectedTotal < state.monthlyTarget 
-                ? `- Rp${Math.floor(state.monthlyTarget - projection.projectedTotal).toLocaleString('id-ID')}`
-                : 'AMAN (SURPLUS)'}
+           <div className="text-sm font-bold text-gray-400 uppercase mb-2">Total Kasbon / Utang</div>
+           <div className="text-3xl font-mono text-red-500">
+              - Rp{totalKasbon.toLocaleString('id-ID')}
            </div>
+           <div className="text-xs text-red-400 mt-2 italic">Mengurangi Gaji Cair</div>
         </div>
       </div>
         

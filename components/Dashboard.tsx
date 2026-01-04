@@ -15,7 +15,8 @@ const Dashboard: React.FC<DashboardProps> = ({ state, todayStr, updateRecord }) 
     date: todayStr,
     isWorkDay: true, // Default assumed
     items: {},
-    manualDeductions: { meal: true }, // Legacy flag, basically ignores "false" now if workday is true
+    kasbon: 0,
+    manualDeductions: { meal: true }, // Legacy flag
   };
 
   const dailyTarget = getStrictDailyTarget(state, todayStr);
@@ -24,8 +25,8 @@ const Dashboard: React.FC<DashboardProps> = ({ state, todayStr, updateRecord }) 
   // Surplus dihitung dari NET (Omset Jasa). Uang makan TIDAK MASUK perhitungan target kerja.
   const surplus = stats.net - dailyTarget;
   
-  // Gaji Cair = (Omset Jasa - Potongan Lain) + Uang Makan
-  const takeHome = (stats.income - stats.deductions) + stats.mealAllowance;
+  // Gaji Cair = (Omset Jasa - Potongan Lain - KASBON) + Uang Makan
+  const takeHome = (stats.income - stats.deductions - stats.kasbon) + stats.mealAllowance;
   
   // Check strict consecutive loss logic
   const [y, m, d] = todayStr.split('-').map(Number);
@@ -47,6 +48,14 @@ const Dashboard: React.FC<DashboardProps> = ({ state, todayStr, updateRecord }) 
     updateRecord({
       ...currentRecord,
       items: newItems
+    });
+  };
+
+  const handleKasbonChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = parseInt(e.target.value) || 0;
+    updateRecord({
+      ...currentRecord,
+      kasbon: val
     });
   };
 
@@ -122,6 +131,12 @@ const Dashboard: React.FC<DashboardProps> = ({ state, todayStr, updateRecord }) 
              <div className="text-xs text-gray-400 uppercase">Total Gaji (Cair)</div>
              <div className="font-mono font-bold text-blue-300 text-lg md:text-xl">{formatCurrency(takeHome)}</div>
            </div>
+           {stats.kasbon > 0 && (
+             <div className="col-span-2 border-t border-gray-700 pt-2 mt-1 flex justify-between items-center bg-red-900/30 px-2 rounded">
+                <span className="text-xs text-red-400 uppercase font-bold">POTONGAN KASBON HARI INI</span>
+                <span className="font-mono font-bold text-red-400">-{formatCurrency(stats.kasbon)}</span>
+             </div>
+           )}
         </div>
       </div>
 
@@ -156,6 +171,26 @@ const Dashboard: React.FC<DashboardProps> = ({ state, todayStr, updateRecord }) 
                </div>
                <div className="font-mono font-bold text-green-400 text-xl">
                  +{formatCurrency(state.mealCost)}
+               </div>
+            </div>
+
+            {/* KASBON INPUT */}
+            <div className="bg-red-900/10 p-4 rounded border border-red-900 max-w-xl mx-auto md:mx-0">
+               <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-2">
+                 <div>
+                    <span className="font-bold uppercase text-sm text-red-400 block">TARIK KASBON / PINJAMAN</span>
+                    <span className="text-xs text-red-500/70 uppercase font-mono">AWAS: MEMOTONG GAJI CAIR</span>
+                 </div>
+               </div>
+               <div className="flex items-center gap-2">
+                 <span className="text-gray-400 font-bold">Rp</span>
+                 <input 
+                    type="number" 
+                    value={currentRecord.kasbon === 0 ? '' : currentRecord.kasbon} 
+                    onChange={handleKasbonChange}
+                    placeholder="0"
+                    className="flex-1 bg-black/50 border border-red-900/50 rounded p-2 text-white font-mono font-bold focus:outline-none focus:border-red-500"
+                 />
                </div>
             </div>
             
