@@ -5,15 +5,16 @@ export interface MenuItem {
   label: string;
   price: number;
   category: ItemCategory;
-  isDeduction?: boolean; // For operational costs
+  isDeduction?: boolean;
 }
 
 export interface DailyRecord {
-  date: string; // ISO Date YYYY-MM-DD
+  date: string;
   isWorkDay: boolean;
-  items: Record<string, number>; // itemId -> count
+  items: Record<string, number>;
+  kasbon: number; // Baru: Nominal pinjaman/kasbon per hari
   manualDeductions: {
-    meal: boolean; // kept for legacy state compatibility, but logic changes to allowance
+    meal: boolean;
   };
   notes?: string;
 }
@@ -22,8 +23,8 @@ export interface AppState {
   monthlyTarget: number;
   mealCost: number;
   currentYear: number;
-  currentMonth: number; // 0-11
-  records: Record<string, DailyRecord>; // date -> record
+  currentMonth: number;
+  records: Record<string, DailyRecord>;
 }
 
 export interface DailyStats {
@@ -32,5 +33,6 @@ export interface DailyStats {
   net: number;
   totalPairs: number;
   premiumCount: number;
-  mealAllowance: number; // Added: Tunjangan makan
+  mealAllowance: number;
+  kasbon: number; // Baru: Untuk summary
 }
